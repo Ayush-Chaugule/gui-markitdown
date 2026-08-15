@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: MIT
 #
-# One-command launcher for the MarkItDown GUI. This is what end users run
+# One-command launcher for MintDown. This is what end users run
 # after downloading a release zip (or `git clone`-ing / "Download ZIP"-ing
 # this repo) -- no manual pip install, no manual venv, nothing.
 #
@@ -37,8 +37,8 @@ fi
 # --- Path 1: a prebuilt standalone binary is available -----------------
 
 for candidate in \
-    "$SCRIPT_DIR/markitdown-gui" \
-    "$SCRIPT_DIR/packages/markitdown-gui/packaging/dist/markitdown-gui"
+    "$SCRIPT_DIR/mintdown" \
+    "$SCRIPT_DIR/packages/markitdown-gui/packaging/dist/mintdown"
 do
     if [[ -x "$candidate" ]]; then
         exec "$candidate" "$@"
@@ -104,7 +104,7 @@ if [[ ! -f "$MARKER" ]]; then
         exit 1
     fi
 
-    echo "==> Installing MarkItDown GUI and its dependencies (this can take a minute)"
+    echo "==> Installing MintDown and its dependencies (this can take a minute)"
     python -m pip install --quiet --upgrade pip wheel
     pip install --quiet "$SCRIPT_DIR/packages/markitdown[pptx,docx,xlsx,xls,pdf,outlook,audio-transcription]"
     pip install --quiet "$SCRIPT_DIR/packages/markitdown-gui"

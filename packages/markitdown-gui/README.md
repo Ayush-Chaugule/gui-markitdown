@@ -1,8 +1,8 @@
-# MarkItDown GUI
+# MintDown
 
-A small, fixed-size Tkinter desktop app for [MarkItDown](../markitdown), styled to look at
-home on a Linux Mint / Cinnamon desktop (Mint-Y-Dark-Purple). Pick a file, convert it to
-Markdown, save the result -- nothing more.
+Source for MintDown, a small, fixed-size Tkinter desktop app for [MarkItDown](../markitdown),
+styled to look at home on a Linux Mint / Cinnamon desktop (Mint-Y-Dark-Purple). Pick a file,
+convert it to Markdown, save the result -- nothing more.
 
 This package is source; see [`../../run.sh`](../../run.sh) at the repo root for how end users
 are meant to launch it without installing anything themselves.

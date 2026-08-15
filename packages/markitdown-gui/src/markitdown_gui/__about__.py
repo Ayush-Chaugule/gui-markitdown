@@ -10,4 +10,4 @@ __version__ = "0.1.0"
 # Single source of truth for the application name. Drives the window title,
 # the in-window heading, and the About dialog (app.py / about.py both import
 # it from here).
-APP_TITLE = "MarkItDown Desktop"
+APP_TITLE = "MintDown"

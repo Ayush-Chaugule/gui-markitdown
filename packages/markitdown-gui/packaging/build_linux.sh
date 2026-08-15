@@ -3,9 +3,9 @@
 #
 # SPDX-License-Identifier: MIT
 #
-# Builds a standalone, single-file Linux executable for the MarkItDown GUI
-# using PyInstaller, so end users can run it without installing Python
-# packages, a venv, or anything else themselves.
+# Builds a standalone, single-file Linux executable for MintDown (the
+# markitdown-gui package) using PyInstaller, so end users can run it without
+# installing Python packages, a venv, or anything else themselves.
 #
 # Usage:
 #   packages/markitdown-gui/packaging/build_linux.sh [--clean]
@@ -13,7 +13,7 @@
 #   --clean   Wipe the build venv first (slower, but fully reproducible).
 #             Without it, an existing venv is reused so repeat builds are fast.
 #
-# Output: packages/markitdown-gui/packaging/dist/markitdown-gui
+# Output: packages/markitdown-gui/packaging/dist/mintdown
 #
 # Note: ffmpeg and exiftool are external system binaries, not Python
 # packages, so they are NOT bundled by this script. Audio transcription for
@@ -87,7 +87,7 @@ echo "==> Running PyInstaller"
 pyinstaller \
     --onefile \
     --windowed \
-    --name markitdown-gui \
+    --name mintdown \
     --distpath "$DIST_DIR" \
     --workpath "$BUILD_DIR" \
     --specpath "$SCRIPT_DIR" \
@@ -99,7 +99,7 @@ pyinstaller \
 
 deactivate
 
-BINARY="$DIST_DIR/markitdown-gui"
+BINARY="$DIST_DIR/mintdown"
 if [[ -f "$BINARY" ]]; then
     chmod +x "$BINARY"
     SIZE=$(du -h "$BINARY" | cut -f1)

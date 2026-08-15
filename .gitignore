@@ -178,4 +178,4 @@ CLAUDE.md
 /.markitdown-gui-venv/
 packages/markitdown-gui/.build-venv/
 /release-bundle/
-/markitdown-gui-linux-x86_64.zip
+/mintdown-linux-x86_64.zip

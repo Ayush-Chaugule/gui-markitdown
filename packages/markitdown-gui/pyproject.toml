@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "markitdown-gui"
 dynamic = ["version"]
-description = 'A small Tkinter desktop GUI for the "markitdown" library, styled to match Linux Mint Cinnamon (Mint-Y-Dark-Purple).'
+description = 'MintDown -- a small Tkinter desktop GUI for the "markitdown" library, styled to match Linux Mint Cinnamon (Mint-Y-Dark-Purple).'
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -45,7 +45,7 @@ Source = "https://github.com/Ayush-Chaugule/gui-markitdown"
 path = "src/markitdown_gui/__about__.py"
 
 [project.scripts]
-markitdown-gui = "markitdown_gui.__main__:main"
+mintdown = "markitdown_gui.__main__:main"
 
 [tool.hatch.envs.default]
 features = ["bundle"]

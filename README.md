@@ -1,15 +1,15 @@
-# MarkItDown Desktop
+# MintDown
 
 A small desktop app for converting files to Markdown, styled to match Linux Mint's Cinnamon
 desktop. Pick a file, click Convert, save the result — no command line required.
 
 <p align="center">
   <a href="https://github.com/Ayush-Chaugule/gui-markitdown/releases">
-    <img alt="Download MarkItDown Desktop" src="https://img.shields.io/badge/Download-Latest%20Release-8c5dd9?style=for-the-badge">
+    <img alt="Download MintDown" src="https://img.shields.io/badge/Download-Latest%20Release-8c5dd9?style=for-the-badge">
   </a>
 </p>
 
-MarkItDown Desktop is a graphical front end for [MarkItDown](https://github.com/microsoft/markitdown),
+MintDown is a graphical front end for [MarkItDown](https://github.com/microsoft/markitdown),
 Microsoft's command-line/Python tool for converting documents, spreadsheets, presentations, images,
 audio, and more into clean Markdown. This project wraps that library in a Tkinter GUI so it can be
 used without touching a terminal, and packages it as a standalone executable so it can be run
@@ -19,16 +19,16 @@ without installing Python or any dependencies.
 
 | Main window | About |
 | --- | --- |
-| ![MarkItDown Desktop main window, showing a converted file, a filled progress bar, and a success message](screenshots/main-window.png) | ![About dialog, showing the app name, version, and a link to the source repository](screenshots/about-dialog.png) |
+| ![MintDown main window, showing a converted file, a filled progress bar, and a success message](screenshots/main-window.png) | ![About dialog, showing the app name, version, and a link to the source repository](screenshots/about-dialog.png) |
 
 The visual theme is inspired by Linux Mint's Cinnamon desktop (the Mint-Y-Dark-Purple variant) —
 colors, fonts, and button styling are drawn from that theme so the app feels at home there.
 
 ## Getting it
 
-The recommended way to get MarkItDown Desktop is to grab the latest build from the
+The recommended way to get MintDown is to grab the latest build from the
 [**Releases**](https://github.com/Ayush-Chaugule/gui-markitdown/releases) page: download the Linux
-build, extract it if it's a zip, and run `./run.sh` (or the `markitdown-gui` executable directly).
+build, extract it if it's a zip, and run `./run.sh` (or the `mintdown` executable directly).
 Nothing else to install — Python and its runtime are bundled into the executable.
 
 If no release has been published yet, or you'd rather run from source, clone the repo and run the
@@ -50,7 +50,7 @@ one time only); every run after that starts immediately. This still doesn't requ
 packages/markitdown-gui/packaging/build_linux.sh
 ```
 
-This produces a single-file Linux executable at `packages/markitdown-gui/packaging/dist/markitdown-gui`
+This produces a single-file Linux executable at `packages/markitdown-gui/packaging/dist/mintdown`
 using PyInstaller, with the same Python installed by `run.sh` and no extra steps. See
 `packages/markitdown-gui/README.md` for more on the package layout.
 
