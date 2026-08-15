@@ -14,6 +14,13 @@ on:
     types: [published]
   workflow_dispatch: {} # allows a manual "Run workflow" for testing, without a release
 
+# GITHUB_TOKEN gets read-only `contents` access by default on repos configured that way
+# (Settings -> Actions -> General -> Workflow permissions). `gh release upload` needs write
+# access to attach assets to a release, so it's requested explicitly here rather than relying
+# on the repo-wide default -- this keeps the workflow correct regardless of that setting.
+permissions:
+  contents: write
+
 jobs:
   build-linux:
     # Building on an older Ubuntu maximizes compatibility: a binary linked
