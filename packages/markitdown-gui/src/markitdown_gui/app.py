@@ -1,10 +1,11 @@
 # SPDX-FileCopyrightText: 2026-present Ayush Chaugule
 #
 # SPDX-License-Identifier: MIT
-"""The actual GUI window: a small, fixed-size Mint-Y-Dark-Purple styled app
-that picks a file, converts it with the real MarkItDown class, and saves the
-result. Also owns the (simulated -- MarkItDown has no real progress signal to
-drive it with) progress bar animation, and opens the About dialog (about.py).
+"""The actual GUI window: a small, fixed-size Mint-Y styled app (dark or
+light, with a switchable accent color -- see theme.py) that picks a file,
+converts it with the real MarkItDown class, and saves the result. Also owns
+the (simulated -- MarkItDown has no real progress signal to drive it with)
+progress bar animation, and opens the About/Settings dialogs.
 """
 
 from __future__ import annotations
@@ -48,15 +49,27 @@ class MarkItDownApp:
         self._progress_fraction = 0.0
         self._progress_after_id: str | None = None
         self._progress_reset_after_id: str | None = None
+        self._last_status_message = ""
+        self._last_status_kind = "neutral"
+
+        # theme.get_theme() reflects whatever was loaded from disk at import
+        # time (see theme.py's module-level load_settings() call), so this
+        # already picks up a saved theme/accent before anything is drawn --
+        # no flash of the default theme on startup.
+        self.theme = theme.get_theme()
 
         self._configure_window()
         self._build_widgets()
+
+        # Rebuild live whenever the theme changes (Settings dialog, or About
+        # if it's somehow open at the same time -- see theme.add_listener).
+        theme.add_listener(self._on_theme_changed)
 
     # --- setup --------------------------------------------------------
 
     def _configure_window(self) -> None:
         self.root.title(APP_TITLE)
-        self.root.configure(bg=theme.BG_WINDOW)
+        self.root.configure(bg=self.theme.BG_WINDOW)
         self.root.resizable(False, False)
 
         # Center the fixed-size window on screen.
@@ -79,30 +92,46 @@ class MarkItDownApp:
         # for that unless we're actually building the UI.
         from .widgets import ProgressBar, RoundedButton
 
-        outer = tk.Frame(self.root, bg=theme.BG_WINDOW)
+        th = self.theme
+        outer = tk.Frame(self.root, bg=th.BG_WINDOW)
         outer.pack(fill="both", expand=True, padx=18, pady=12)
+        self._outer = outer
 
-        # --- Header: title (left) + About (top-right corner) ---------------
-        header = tk.Frame(outer, bg=theme.BG_WINDOW)
+        # --- Header: title (left) + Settings/About (top-right corner) ------
+        header = tk.Frame(outer, bg=th.BG_WINDOW)
         header.pack(fill="x")
 
+        # Packed in this order (both side="right") so the header reads,
+        # left to right: title ... Settings, About -- About claims the
+        # rightmost corner first, Settings takes the slot next to it.
         RoundedButton(
             header,
             text="About",
             command=self._on_about,
-            bg=theme.BG_BUTTON,
-            hover_bg=theme.BUTTON_HOVER,
-            active_bg=theme.BUTTON_PRESSED,
-            fg=theme.FG_PRIMARY,
+            bg=th.BG_BUTTON,
+            hover_bg=th.BUTTON_HOVER,
+            active_bg=th.BUTTON_PRESSED,
+            fg=th.FG_PRIMARY,
             font=self.font_small,
         ).pack(side="right", anchor="n")
+
+        RoundedButton(
+            header,
+            text="⚙",  # gear glyph -- compact, icon-style per the request
+            command=self._on_settings,
+            bg=th.BG_BUTTON,
+            hover_bg=th.BUTTON_HOVER,
+            active_bg=th.BUTTON_PRESSED,
+            fg=th.FG_PRIMARY,
+            font=self.font_small,
+        ).pack(side="right", anchor="n", padx=(0, 6))
 
         tk.Label(
             header,
             text=APP_TITLE,
             font=self.font_title,
-            bg=theme.BG_WINDOW,
-            fg=theme.FG_PRIMARY,
+            bg=th.BG_WINDOW,
+            fg=th.FG_PRIMARY,
             anchor="w",
         ).pack(side="left", fill="x", expand=True)
 
@@ -111,8 +140,8 @@ class MarkItDownApp:
             outer,
             text=format_supported_extensions_label(),
             font=self.font_small,
-            bg=theme.BG_WINDOW,
-            fg=theme.FG_SECONDARY,
+            bg=th.BG_WINDOW,
+            fg=th.FG_SECONDARY,
             justify="left",
             anchor="w",
             wraplength=WINDOW_WIDTH - 36,
@@ -123,10 +152,10 @@ class MarkItDownApp:
             outer,
             text="Choose File",
             command=self._on_choose_file,
-            bg=theme.BG_BUTTON,
-            hover_bg=theme.BUTTON_HOVER,
-            active_bg=theme.BUTTON_PRESSED,
-            fg=theme.FG_PRIMARY,
+            bg=th.BG_BUTTON,
+            hover_bg=th.BUTTON_HOVER,
+            active_bg=th.BUTTON_PRESSED,
+            fg=th.FG_PRIMARY,
             font=self.font_body,
         )
         self.choose_button.pack(anchor="w", pady=(0, 8))
@@ -134,9 +163,9 @@ class MarkItDownApp:
         self.filename_var = tk.StringVar(value="No file selected")
         filename_card = tk.Frame(
             outer,
-            bg=theme.BG_SURFACE,
-            highlightbackground=theme.BORDER,
-            highlightcolor=theme.BORDER,
+            bg=th.BG_SURFACE,
+            highlightbackground=th.BORDER,
+            highlightcolor=th.BORDER,
             highlightthickness=1,
             bd=0,
         )
@@ -145,8 +174,8 @@ class MarkItDownApp:
             filename_card,
             textvariable=self.filename_var,
             font=self.font_body,
-            bg=theme.BG_SURFACE,
-            fg=theme.FG_SECONDARY,
+            bg=th.BG_SURFACE,
+            fg=th.FG_SECONDARY,
             anchor="w",
             padx=10,
             pady=6,
@@ -157,10 +186,10 @@ class MarkItDownApp:
             outer,
             text="Convert",
             command=self._on_convert,
-            bg=theme.ACCENT,
-            hover_bg=theme.ACCENT_HOVER,
-            active_bg=theme.ACCENT_PRESSED,
-            fg=theme.FG_ON_ACCENT,
+            bg=th.ACCENT,
+            hover_bg=th.ACCENT_HOVER,
+            active_bg=th.ACCENT_PRESSED,
+            fg=th.FG_ON_ACCENT,
             font=self.font_body,
             stretch=True,
         )
@@ -183,8 +212,8 @@ class MarkItDownApp:
             outer,
             textvariable=self.status_var,
             font=self.font_small,
-            bg=theme.BG_WINDOW,
-            fg=theme.FG_SECONDARY,
+            bg=th.BG_WINDOW,
+            fg=th.FG_SECONDARY,
             justify="left",
             anchor="w",
             wraplength=WINDOW_WIDTH - 36,
@@ -196,10 +225,10 @@ class MarkItDownApp:
             outer,
             text="Save Output",
             command=self._on_save,
-            bg=theme.BG_BUTTON,
-            hover_bg=theme.BUTTON_HOVER,
-            active_bg=theme.BUTTON_PRESSED,
-            fg=theme.FG_PRIMARY,
+            bg=th.BG_BUTTON,
+            hover_bg=th.BUTTON_HOVER,
+            active_bg=th.BUTTON_PRESSED,
+            fg=th.FG_PRIMARY,
             font=self.font_body,
             stretch=True,
         )
@@ -210,12 +239,64 @@ class MarkItDownApp:
         self.save_button.pack(fill="x")
         self.save_button.set_enabled(False)
 
+    # --- theming --------------------------------------------------------
+
+    def _on_theme_changed(self) -> None:
+        self.rebuild()
+
+    def rebuild(self) -> None:
+        """Tear down and rebuild every widget from the current theme.
+        Called whenever the theme changes so the whole app restyles live,
+        with no restart needed.
+
+        Only destroys `self._outer` (the main content frame), not every
+        child of `root` -- `Toplevel` dialogs (About, Settings) are also
+        counted among `root.winfo_children()` in Tkinter's widget hierarchy
+        even though they render as separate OS windows, so a blanket
+        "destroy every child of root" would silently close whichever dialog
+        the user is actually looking at (found by testing: switching themes
+        from *inside* the Settings dialog made Settings vanish, because that
+        rebuild was destroying it out from under itself). Each dialog
+        rebuilds its own contents independently via its own theme listener.
+        `root` itself is never destroyed, so pending `root.after()` timers --
+        e.g. a conversion's progress animation -- keep running across a
+        rebuild.
+        """
+        self.theme = theme.get_theme()
+        self._outer.destroy()
+        self.root.configure(bg=self.theme.BG_WINDOW)
+        self._build_widgets()
+
+        # The widgets above are brand new; re-apply the state that actually
+        # lives on `self` so a theme switch mid-flow doesn't look like it
+        # reset the app (chosen file, last result, in-progress conversion).
+        if self.selected_path:
+            self.filename_var.set(os.path.basename(self.selected_path))
+            self.convert_button.set_enabled(not self._converting)
+        if self.last_result_markdown:
+            self.save_button.set_enabled(not self._converting)
+        if self._converting:
+            self.convert_button.set_enabled(False)
+            self.save_button.set_enabled(False)
+        if self._last_status_message:
+            self._set_status(self._last_status_message, kind=self._last_status_kind)
+
     # --- handlers -------------------------------------------------------
 
     def _on_about(self) -> None:
         from .about import show_about_dialog
 
         show_about_dialog(
+            self.root,
+            font_title=self.font_title,
+            font_body=self.font_body,
+            font_small=self.font_small,
+        )
+
+    def _on_settings(self) -> None:
+        from .settings import show_settings_dialog
+
+        show_settings_dialog(
             self.root,
             font_title=self.font_title,
             font_body=self.font_body,
@@ -342,11 +423,13 @@ class MarkItDownApp:
     # --- helpers --------------------------------------------------------
 
     def _set_status(self, message: str, *, kind: str) -> None:
+        self._last_status_message = message
+        self._last_status_kind = kind
         self.status_var.set(message)
         color = {
-            "success": theme.SUCCESS,
-            "error": theme.ERROR,
-            "neutral": theme.FG_SECONDARY,
+            "success": self.theme.SUCCESS,
+            "error": self.theme.ERROR,
+            "neutral": self.theme.FG_SECONDARY,
         }[kind]
         self.status_label.configure(fg=color)
 

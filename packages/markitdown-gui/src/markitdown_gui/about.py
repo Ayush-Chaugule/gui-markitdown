@@ -11,6 +11,10 @@ transient()/grab_set()/WM_DELETE_WINDOW, and is the conventional shape of an
 "About" dialog in any desktop toolkit -- all of which makes it the one less
 likely to grow subtle bugs later, which was the deciding factor over the
 "cover the window" alternative.
+
+Restyles live if the theme changes while it's open (see theme.add_listener):
+its content is rebuilt from theme.get_theme() rather than built once from
+constants captured at open time.
 """
 
 from __future__ import annotations
@@ -26,7 +30,7 @@ SOURCE_URL = "https://github.com/Ayush-Chaugule/gui-markitdown"
 
 # Sized the same way as the main window: measured the packed layout's actual
 # winfo_reqheight() and left a deliberate margin below it, rather than
-# guessing a round number.
+# guessing a round number. Not theme-dependent, so these stay plain constants.
 DIALOG_WIDTH = 360
 DIALOG_HEIGHT = 330
 
@@ -37,9 +41,97 @@ def show_about_dialog(root: tk.Tk, *, font_title, font_body, font_small) -> None
 
     dialog = tk.Toplevel(root)
     dialog.title("About")
-    dialog.configure(bg=theme.BG_WINDOW)
     dialog.resizable(False, False)
     dialog.transient(root)  # stays on top of / minimizes with the main window
+
+    def build_content() -> None:
+        th = theme.get_theme()
+        dialog.configure(bg=th.BG_WINDOW)
+        for child in dialog.winfo_children():
+            child.destroy()
+
+        outer = tk.Frame(dialog, bg=th.BG_WINDOW)
+        outer.pack(fill="both", expand=True, padx=20, pady=16)
+
+        tk.Label(
+            outer,
+            text=APP_TITLE,
+            font=font_title,
+            bg=th.BG_WINDOW,
+            fg=th.FG_PRIMARY,
+            anchor="w",
+        ).pack(fill="x")
+
+        tk.Label(
+            outer,
+            text=f"Version {__version__}",
+            font=font_body,
+            bg=th.BG_WINDOW,
+            fg=th.FG_SECONDARY,
+            anchor="w",
+        ).pack(fill="x", pady=(2, 14))
+
+        tk.Label(
+            outer,
+            text=(
+                "Visual theme inspired by Linux Mint Cinnamon (Mint-Y). "
+                "This is an independent, personal-use project -- not affiliated with, "
+                "endorsed by, or sponsored by Linux Mint or Microsoft."
+            ),
+            font=font_small,
+            bg=th.BG_WINDOW,
+            fg=th.FG_SECONDARY,
+            justify="left",
+            anchor="w",
+            wraplength=DIALOG_WIDTH - 40,
+        ).pack(fill="x", pady=(0, 16))
+
+        def _open_source() -> None:
+            webbrowser.open(SOURCE_URL)
+
+        # Source gets the accent treatment (it's the notable action here, same
+        # role Convert plays in the main window); Close is plain dismiss chrome
+        # (same role Save Output plays -- present, but not the visual headline).
+        RoundedButton(
+            outer,
+            text="Source",
+            command=_open_source,
+            bg=th.ACCENT,
+            hover_bg=th.ACCENT_HOVER,
+            active_bg=th.ACCENT_PRESSED,
+            fg=th.FG_ON_ACCENT,
+            font=font_body,
+            stretch=True,
+        ).pack(fill="x", pady=(0, 8))
+
+        RoundedButton(
+            outer,
+            text="Close",
+            command=_close,
+            bg=th.BG_BUTTON,
+            hover_bg=th.BUTTON_HOVER,
+            active_bg=th.BUTTON_PRESSED,
+            fg=th.FG_PRIMARY,
+            font=font_body,
+            stretch=True,
+        ).pack(fill="x")
+
+    def _on_theme_changed() -> None:
+        # Defensive: normally _close() below deregisters this listener
+        # before the dialog is destroyed, but if the Toplevel ever goes away
+        # through some other path, self-unsubscribe instead of crashing on
+        # a destroyed widget the next time the theme changes.
+        if not dialog.winfo_exists():
+            theme.remove_listener(_on_theme_changed)
+            return
+        build_content()
+
+    def _close() -> None:
+        theme.remove_listener(_on_theme_changed)
+        dialog.destroy()
+
+    theme.add_listener(_on_theme_changed)
+    build_content()
 
     root.update_idletasks()
     x = root.winfo_rootx() + (root.winfo_width() - DIALOG_WIDTH) // 2
@@ -48,72 +140,6 @@ def show_about_dialog(root: tk.Tk, *, font_title, font_body, font_small) -> None
     dialog.minsize(DIALOG_WIDTH, DIALOG_HEIGHT)
     dialog.maxsize(DIALOG_WIDTH, DIALOG_HEIGHT)
 
-    outer = tk.Frame(dialog, bg=theme.BG_WINDOW)
-    outer.pack(fill="both", expand=True, padx=20, pady=16)
-
-    tk.Label(
-        outer,
-        text=APP_TITLE,
-        font=font_title,
-        bg=theme.BG_WINDOW,
-        fg=theme.FG_PRIMARY,
-        anchor="w",
-    ).pack(fill="x")
-
-    tk.Label(
-        outer,
-        text=f"Version {__version__}",
-        font=font_body,
-        bg=theme.BG_WINDOW,
-        fg=theme.FG_SECONDARY,
-        anchor="w",
-    ).pack(fill="x", pady=(2, 14))
-
-    tk.Label(
-        outer,
-        text=(
-            "Visual theme inspired by Linux Mint Cinnamon (Mint-Y-Dark-Purple). "
-            "This is an independent, personal-use project -- not affiliated with, "
-            "endorsed by, or sponsored by Linux Mint or Microsoft."
-        ),
-        font=font_small,
-        bg=theme.BG_WINDOW,
-        fg=theme.FG_SECONDARY,
-        justify="left",
-        anchor="w",
-        wraplength=DIALOG_WIDTH - 40,
-    ).pack(fill="x", pady=(0, 16))
-
-    def _open_source() -> None:
-        webbrowser.open(SOURCE_URL)
-
-    # Source gets the accent treatment (it's the notable action here, same
-    # role Convert plays in the main window); Close is plain dismiss chrome
-    # (same role Save Output plays -- present, but not the visual headline).
-    RoundedButton(
-        outer,
-        text="Source",
-        command=_open_source,
-        bg=theme.ACCENT,
-        hover_bg=theme.ACCENT_HOVER,
-        active_bg=theme.ACCENT_PRESSED,
-        fg=theme.FG_ON_ACCENT,
-        font=font_body,
-        stretch=True,
-    ).pack(fill="x", pady=(0, 8))
-
-    RoundedButton(
-        outer,
-        text="Close",
-        command=dialog.destroy,
-        bg=theme.BG_BUTTON,
-        hover_bg=theme.BUTTON_HOVER,
-        active_bg=theme.BUTTON_PRESSED,
-        fg=theme.FG_PRIMARY,
-        font=font_body,
-        stretch=True,
-    ).pack(fill="x")
-
-    dialog.protocol("WM_DELETE_WINDOW", dialog.destroy)
+    dialog.protocol("WM_DELETE_WINDOW", _close)
     dialog.focus_set()
     dialog.grab_set()  # modal: block interaction with the main window until closed
