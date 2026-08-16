@@ -4,7 +4,7 @@ A small desktop app for converting files to Markdown, styled to match Linux Mint
 desktop. Pick a file, click Convert, save the result — no command line required.
 
 <p align="center">
-  <a href="https://github.com/Ayush-Chaugule/gui-markitdown/releases">
+  <a href="https://github.com/Ayush-Chaugule/mintdown/releases">
     <img alt="Download MintDown" src="https://img.shields.io/badge/Download-Latest%20Release-8c5dd9?style=for-the-badge">
   </a>
 </p>
@@ -36,7 +36,7 @@ its dark or light form, with an accent color you can customize in Settings.
 ## Getting it
 
 The recommended way to get MintDown is to grab the latest build from the
-[**Releases**](https://github.com/Ayush-Chaugule/gui-markitdown/releases) page: download the Linux
+[**Releases**](https://github.com/Ayush-Chaugule/mintdown/releases) page: download the Linux
 build, extract it if it's a zip, and run `./run.sh` (or the `mintdown` executable directly).
 Nothing else to install — Python and its runtime are bundled into the executable.
 
@@ -44,8 +44,8 @@ If no release has been published yet, or you'd rather run from source, clone the
 same launcher script — it bootstraps everything it needs automatically on first run:
 
 ```bash
-git clone https://github.com/Ayush-Chaugule/gui-markitdown.git
-cd gui-markitdown
+git clone https://github.com/Ayush-Chaugule/mintdown.git
+cd mintdown
 ./run.sh
 ```
 

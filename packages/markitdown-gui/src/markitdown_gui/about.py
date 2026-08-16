@@ -26,7 +26,7 @@ from . import theme
 from .__about__ import APP_TITLE, __version__
 
 # Repository URL, opened by the Source button below.
-SOURCE_URL = "https://github.com/Ayush-Chaugule/gui-markitdown"
+SOURCE_URL = "https://github.com/Ayush-Chaugule/mintdown"
 
 # Sized the same way as the main window: measured the packed layout's actual
 # winfo_reqheight() and left a deliberate margin below it, rather than
