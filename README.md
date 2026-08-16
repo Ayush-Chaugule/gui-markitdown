@@ -15,14 +15,23 @@ audio, and more into clean Markdown. This project wraps that library in a Tkinte
 used without touching a terminal, and packages it as a standalone executable so it can be run
 without installing Python or any dependencies.
 
+## What's new in 0.2.0
+
+- **Settings dialog** — a small gear icon next to About opens it.
+- **Dark and Light themes** — switch between them instantly, no restart needed.
+- **Custom accent color** — pick from a handful of presets or any color via the system color
+  picker; applies live to every button and the progress bar across the whole app.
+- Your theme and accent choice are remembered the next time you open MintDown.
+
 ## Screenshots
 
-| Main window | About |
-| --- | --- |
-| ![MintDown main window, showing a converted file, a filled progress bar, and a success message](screenshots/main-window.png) | ![About dialog, showing the app name, version, and a link to the source repository](screenshots/about-dialog.png) |
+| Main window | About | Settings |
+| --- | --- | --- |
+| ![MintDown main window, showing a converted file, a filled progress bar, and a success message](screenshots/main-window.png) | ![About dialog, showing the app name, version, and a link to the source repository](screenshots/about-dialog.png) | ![Settings dialog, showing the dark/light theme toggle and accent color presets](screenshots/settings-dialog.png) |
 
-The visual theme is inspired by Linux Mint's Cinnamon desktop (the Mint-Y-Dark-Purple variant) —
-colors, fonts, and button styling are drawn from that theme so the app feels at home there.
+The visual theme is inspired by Linux Mint's Cinnamon desktop (the Mint-Y theme family) — colors,
+fonts, and button styling are drawn from real Mint-Y CSS so the app feels at home there, in either
+its dark or light form, with an accent color you can customize in Settings.
 
 ## Getting it
 

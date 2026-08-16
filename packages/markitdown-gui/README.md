@@ -1,8 +1,8 @@
 # MintDown
 
 Source for MintDown, a small, fixed-size Tkinter desktop app for [MarkItDown](../markitdown),
-styled to look at home on a Linux Mint / Cinnamon desktop (Mint-Y-Dark-Purple). Pick a file,
-convert it to Markdown, save the result -- nothing more.
+styled to look at home on a Linux Mint / Cinnamon desktop (Mint-Y, dark or light, with a
+customizable accent color). Pick a file, convert it to Markdown, save the result -- nothing more.
 
 This package is source; see [`../../run.sh`](../../run.sh) at the repo root for how end users
 are meant to launch it without installing anything themselves.
@@ -24,16 +24,21 @@ root `run.sh` and `packaging/build_linux.sh`) has Tk's runtime baked in and does
 
 ## Package layout
 
-- `theme.py` -- the Mint-Y-Dark-Purple color palette and font resolution (values read
-  directly from the installed Cinnamon theme's CSS, not guessed).
+- `theme.py` -- the dark and light Mint-Y color palettes, the live accent-color override, and
+  settings persistence (`~/.config/mintdown/settings.json`). Values read directly from the
+  installed Cinnamon theme's CSS, not guessed. Every other module reads colors from
+  `theme.get_theme()`, never from hardcoded constants, so a theme/accent change restyles the
+  whole app immediately -- see `theme.add_listener()`.
 - `formats.py` -- introspects a live `MarkItDown()` instance to build the "Supports: ..."
   label from the converters actually registered, instead of a hand-maintained list.
-- `widgets.py` -- small Canvas-based widgets (`RoundedButton`, `ProgressBar`) styled to match
-  the theme, since `ttk` can't do real rounded corners portably.
+- `widgets.py` -- small Canvas-based widgets (`RoundedButton`, `ProgressBar`, `ColorSwatch`)
+  styled to match the current theme, since `ttk` can't do real rounded corners portably.
 - `convert.py` -- a thin wrapper around `markitdown.MarkItDown().convert_local()`.
 - `app.py` -- the main window: wires the widgets together, runs conversion on a background
-  thread so the UI never blocks, and drives the progress bar animation.
+  thread so the UI never blocks, drives the progress bar animation, and rebuilds the whole
+  window live when the theme changes.
 - `about.py` -- the About dialog (app name, version, source link).
+- `settings.py` -- the Settings dialog (dark/light toggle, accent color picker).
 - `__main__.py` -- `python -m markitdown_gui` entry point (also the PyInstaller entry point).
 
 ## Packaging

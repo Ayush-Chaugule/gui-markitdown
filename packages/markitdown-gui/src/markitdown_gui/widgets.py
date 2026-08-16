@@ -71,12 +71,25 @@ class RoundedButton(tk.Canvas):
         padx: int = theme.BUTTON_PAD_X,
         pady: int = theme.BUTTON_PAD_Y,
         stretch: bool = False,
-        disabled_bg: str = theme.DISABLED_BG,
-        disabled_fg: str = theme.DISABLED_FG,
-        border: str = theme.BORDER,
+        disabled_bg: Optional[str] = None,
+        disabled_fg: Optional[str] = None,
+        border: Optional[str] = None,
     ) -> None:
         parent_bg = parent["bg"]
         super().__init__(parent, bg=parent_bg, highlightthickness=0, bd=0, cursor="hand2")
+
+        # disabled_bg/disabled_fg/border default to the *current* theme,
+        # resolved here (construction time) rather than as bare parameter
+        # defaults -- a parameter default is bound once, when this method is
+        # first defined, so it would freeze in whatever theme was active at
+        # import time and go stale the moment the user switches themes.
+        current = theme.get_theme()
+        if disabled_bg is None:
+            disabled_bg = current.DISABLED_BG
+        if disabled_fg is None:
+            disabled_fg = current.DISABLED_FG
+        if border is None:
+            border = current.BORDER
 
         self._text = text
         self._command = command
@@ -123,11 +136,11 @@ class RoundedButton(tk.Canvas):
         return self._bg, self._fg
 
     def _draw(self, width: float, height: float) -> None:
-        # Real Mint-Y-Dark-Purple buttons are drawn with `border: 1px solid
-        # #202023` around the fill (see gtk-dark.css). We keep that outline on
-        # every state -- including disabled -- so a disabled button still
-        # reads as "a button" (its shape stays legible) even when its fill is
-        # deliberately muted down toward the window background.
+        # Real Mint-Y buttons are drawn with a 1px solid border around the
+        # fill (see theme.py's BORDER, sourced from the real theme CSS). We
+        # keep that outline on every state -- including disabled -- so a
+        # disabled button still reads as "a button" (its shape stays legible)
+        # even when its fill is deliberately muted down toward the window background.
         self.delete("all")
         fill, text_fill = self._current_colors()
         radius = min(self._radius, height / 2, width / 2)
@@ -216,14 +229,27 @@ class ProgressBar(tk.Canvas):
         font,
         width: int = 200,
         height: int = theme.PROGRESS_BAR_HEIGHT,
-        trough: str = theme.PROGRESS_TROUGH,
-        fill: str = theme.PROGRESS_FILL,
-        text_fill: str = theme.PROGRESS_TEXT,
-        border: str = theme.BORDER,
+        trough: Optional[str] = None,
+        fill: Optional[str] = None,
+        text_fill: Optional[str] = None,
+        border: Optional[str] = None,
         radius: int = theme.PROGRESS_BAR_RADIUS,
     ) -> None:
         parent_bg = parent["bg"]
         super().__init__(parent, bg=parent_bg, highlightthickness=0, bd=0)
+
+        # Same reasoning as RoundedButton: resolve color defaults against the
+        # *current* theme at construction time, not at function-definition
+        # time, so a theme switch doesn't leave stale colors behind.
+        current = theme.get_theme()
+        if trough is None:
+            trough = current.PROGRESS_TROUGH
+        if fill is None:
+            fill = current.PROGRESS_FILL
+        if text_fill is None:
+            text_fill = current.PROGRESS_TEXT
+        if border is None:
+            border = current.BORDER
 
         self._font = font
         self._trough = trough
@@ -292,3 +318,67 @@ class ProgressBar(tk.Canvas):
                 fill=self._text_fill,
                 font=self._font,
             )
+
+
+class ColorSwatch(tk.Canvas):
+    """A small square color-swatch button, used for the accent-preset picker
+    in the Settings dialog. Shows a thicker accent-colored ring when
+    selected, a plain 1px border otherwise -- same rounded-polygon drawing
+    approach as the rest of this module, just without any text.
+    """
+
+    def __init__(
+        self,
+        parent: tk.Widget,
+        color: str,
+        command: Optional[Callable[[], None]] = None,
+        *,
+        selected: bool = False,
+        size: int = 28,
+        radius: int = 6,
+        border: Optional[str] = None,
+        selected_border: Optional[str] = None,
+    ) -> None:
+        parent_bg = parent["bg"]
+        super().__init__(
+            parent, width=size, height=size, bg=parent_bg, highlightthickness=0, bd=0, cursor="hand2"
+        )
+
+        current = theme.get_theme()
+        self._color = color
+        self._command = command
+        self._selected = selected
+        self._size = size
+        self._radius = radius
+        self._border = border if border is not None else current.BORDER
+        # FG_PRIMARY (not ACCENT) by design: the selected swatch's own fill
+        # *is* the current accent, so an accent-colored ring around it would
+        # blend straight into the fill and disappear (found by testing --
+        # picking the red preset made its "selected" ring invisible). A
+        # theme-contrasting neutral (near-white in dark mode, near-black in
+        # light mode) reliably shows up against every preset color instead.
+        self._selected_border = (
+            selected_border if selected_border is not None else current.FG_PRIMARY
+        )
+
+        self.bind("<ButtonRelease-1>", self._on_release)
+        self._draw()
+
+    def _draw(self) -> None:
+        self.delete("all")
+        border_color = self._selected_border if self._selected else self._border
+        width = 3 if self._selected else 1
+        inset = width / 2 + 1
+        points = _rounded_rect_points(
+            inset, inset, self._size - inset, self._size - inset, self._radius
+        )
+        self.create_polygon(points, smooth=True, fill=self._color, outline=border_color, width=width)
+
+    def _on_release(self, event: tk.Event) -> None:
+        if 0 <= event.x <= self._size and 0 <= event.y <= self._size:
+            if self._command is not None:
+                self._command()
+
+    def set_selected(self, selected: bool) -> None:
+        self._selected = selected
+        self._draw()
